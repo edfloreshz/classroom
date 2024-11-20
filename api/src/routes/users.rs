@@ -15,10 +15,12 @@ pub struct User {
     updated_at: DateTime<Utc>,
 }
 
-pub async fn users(State(state): State<AppState>) -> Result<Json<Vec<User>>, (StatusCode, String)> {
+pub async fn get_users(
+    State(state): State<AppState>,
+) -> Result<Json<Vec<User>>, (StatusCode, String)> {
     sqlx::query_as::<_, User>("SELECT * FROM users")
         .fetch_all(&state.pool)
         .await
-        .map(|todos| axum::Json(todos))
+        .map(Json)
         .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))
 }

@@ -2,9 +2,17 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub mod database;
 mod error;
-pub use error::Error;
 pub mod routes;
-pub mod state;
+mod state;
+
+pub mod prelude {
+    pub use crate::database::connection::connection_pool;
+    pub use crate::error::Error;
+    pub use crate::routes::{index, users};
+    pub use crate::state::AppState;
+}
+
+use prelude::*;
 
 pub fn trace() {
     tracing_subscriber::registry()
@@ -14,4 +22,13 @@ pub fn trace() {
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
+}
+
+pub fn env() {
+    dotenv::dotenv().ok();
+}
+
+pub async fn state() -> Result<AppState, Error> {
+    let pool = connection_pool().await?;
+    Ok(AppState::new(pool))
 }
