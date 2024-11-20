@@ -1,7 +1,14 @@
 use axum::{routing::get, Router};
+use users::users;
 
-pub fn routes() -> Router {
-    Router::new().route("/", get(index))
+use crate::state::AppState;
+mod users;
+
+pub fn routes(state: AppState) -> Router {
+    Router::new()
+        .route("/", get(index))
+        .route("/api/users", get(users))
+        .with_state(state)
 }
 
 pub async fn index() -> String {

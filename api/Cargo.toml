@@ -5,8 +5,27 @@ edition = "2021"
 
 [dependencies]
 axum = "0.7.9"
+dotenv = "0.15.0"
+serde = { version = "1.0.215", features = ["derive"] }
 thiserror = "2.0.3"
+tracing = "0.1.40"
 
 [dependencies.tokio]
 version = "1.41.1"
 features = ["macros", "rt-multi-thread"]
+
+[dependencies.sqlx]
+version = "0.8"
+features = ["runtime-tokio", "sqlite", "chrono"]
+
+[dependencies.uuid]
+version = "1.11.0"
+features = ["v4"]
+
+[dependencies.chrono]
+version = "0.4.38"
+features = ["serde"]
+
+[dependencies.tracing-subscriber]
+version = "0.3.18"
+features = ["env-filter"]
