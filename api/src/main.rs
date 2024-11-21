@@ -1,5 +1,5 @@
 use axum::{routing::get, Router};
-use classroom_api::prelude::*;
+use classroom_api::{prelude::*, routes};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -9,15 +9,8 @@ async fn main() -> Result<(), Error> {
     let state = classroom_api::state().await?;
     let routes = Router::new()
         .route("/", get(index::get_index))
-        .route(
-            "/api/users",
-            get(users::get_all)
-                .post(users::post)
-                .delete(users::delete)
-                .put(users::put),
-        )
-        .with_state(state.clone())
-        .route("/api/user", get(users::get))
+        .route("/api/users", routes::users())
+        .route("/api/user", routes::user())
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;

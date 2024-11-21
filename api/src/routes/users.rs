@@ -20,6 +20,11 @@ pub struct User {
     updated_at: DateTime<Utc>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct UserParams {
+    id: String,
+}
+
 pub async fn get_all(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<User>>, (StatusCode, Json<InternalServerError>)> {
@@ -30,17 +35,12 @@ pub async fn get_all(
         .map_err(internal_server_error)
 }
 
-#[derive(Debug, Deserialize)]
-pub struct UserParams {
-    user_id: String,
-}
-
 pub async fn get(
     State(state): State<AppState>,
     Query(params): Query<UserParams>,
 ) -> Result<Json<User>, (StatusCode, Json<InternalServerError>)> {
     sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
-        .bind(params.user_id)
+        .bind(params.id)
         .fetch_one(&state.pool)
         .await
         .map(Json)
@@ -94,8 +94,8 @@ pub async fn delete(
     State(state): State<AppState>,
     Query(params): Query<UserParams>,
 ) -> Result<StatusCode, (StatusCode, Json<InternalServerError>)> {
-    sqlx::query("DELETE FROM users WHERE id = $1")
-        .bind(params.user_id)
+    sqlx::query("DELETE FROM users WHERE id = ?")
+        .bind(params.id)
         .execute(&state.pool)
         .await
         .map_err(internal_server_error)?;
