@@ -95,9 +95,9 @@ pub async fn delete(pool: &Pool<Sqlite>, params: UserParams) -> Result<(), Error
 }
 
 pub async fn user_exists(pool: &Pool<Sqlite>, email: &impl ToString) -> Result<bool, Error> {
-    let result = query("SELECT * FROM users WHERE email = ?")
+    let result = query("SELECT * FROM users WHERE email = ? LIMIT 2")
         .bind(email.to_string())
-        .execute(pool)
+        .fetch_all(pool)
         .await?;
-    Ok(result.rows_affected() > 0)
+    Ok(result.len() > 0)
 }
