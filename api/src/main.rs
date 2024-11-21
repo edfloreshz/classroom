@@ -9,9 +9,15 @@ async fn main() -> Result<(), Error> {
     let state = classroom_api::state().await?;
     let routes = Router::new()
         .route("/", get(index::get_index))
-        .route("/api/users", get(users::get_users))
+        .route(
+            "/api/users",
+            get(users::get_all)
+                .post(users::post)
+                .delete(users::delete)
+                .put(users::put),
+        )
         .with_state(state.clone())
-        .route("/api/user", get(users::get_user))
+        .route("/api/user", get(users::get))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
