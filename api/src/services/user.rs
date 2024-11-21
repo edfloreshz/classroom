@@ -52,35 +52,35 @@ pub async fn get_user_by_email(pool: &Pool<Sqlite>, email: String) -> Result<Use
 }
 
 pub async fn post(pool: &Pool<Sqlite>, user: User) -> Result<(), Error> {
-    query!(
+    query(
         "INSERT INTO users
         (id, username, email, password, first_name, last_name)
         VALUES
         (?, ?, ?, ?, ?, ?)",
-        user.id,
-        user.username,
-        user.email,
-        user.password,
-        user.first_name,
-        user.last_name,
     )
+    .bind(user.id)
+    .bind(user.username)
+    .bind(user.email)
+    .bind(user.password)
+    .bind(user.first_name)
+    .bind(user.last_name)
     .execute(pool)
     .await?;
     Ok(())
 }
 
 pub async fn put(pool: &Pool<Sqlite>, user: User) -> Result<(), Error> {
-    query!(
+    query(
         "UPDATE users
         SET username = ?, email = ?, password = ?, first_name = ?, last_name = ?
         WHERE id = ?",
-        user.username,
-        user.email,
-        user.password,
-        user.first_name,
-        user.last_name,
-        user.id,
     )
+    .bind(user.username)
+    .bind(user.email)
+    .bind(user.password)
+    .bind(user.first_name)
+    .bind(user.last_name)
+    .bind(user.id)
     .execute(pool)
     .await?;
     Ok(())
