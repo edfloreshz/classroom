@@ -1,3 +1,5 @@
+use axum::{http::StatusCode, Json};
+use serde::Serialize;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub mod database;
@@ -31,4 +33,18 @@ pub fn env() {
 pub async fn state() -> Result<AppState, Error> {
     let pool = connection_pool().await?;
     Ok(AppState::new(pool))
+}
+
+#[derive(Debug, Serialize)]
+pub struct InternalServerError {
+    error: String,
+}
+
+fn internal_server_error(err: sqlx::Error) -> (StatusCode, Json<InternalServerError>) {
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        Json(InternalServerError {
+            error: err.to_string(),
+        }),
+    )
 }
