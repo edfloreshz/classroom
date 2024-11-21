@@ -1,16 +1,30 @@
-use axum::{routing::get, Router};
-use classroom_api::{prelude::*, routes};
+use classroom_api::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    classroom_api::trace();
-    classroom_api::env();
+    trace();
+    env();
 
-    let state = classroom_api::state().await?;
-    let routes = Router::new()
-        .route("/", get(index::get_index))
-        .route("/api/users", routes::users())
-        .route("/api/user", routes::user())
+    let state = state().await?;
+
+    let routes = axum::Router::new()
+        .route("/", routes::index())
+        .route(
+            "/api/users",
+            routes::users().layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth::authorize,
+            )),
+        )
+        .route(
+            "/api/user",
+            routes::user().layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth::authorize,
+            )),
+        )
+        .route("/api/auth/signin", routes::sign_in())
+        .route("/api/auth/register", routes::register())
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;

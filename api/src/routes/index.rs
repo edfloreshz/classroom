@@ -1,3 +1,3 @@
-pub async fn get_index() -> String {
+pub async fn index() -> String {
     "Welcome to Classroom!".into()
 }

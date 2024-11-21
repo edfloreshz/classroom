@@ -10,4 +10,6 @@ pub enum Error {
     Var(#[from] std::env::VarError),
     #[error("Migration: {0}")]
     Migration(#[from] sqlx::migrate::MigrateError),
+    #[error("Bcrypt: {0}")]
+    Bcrypt(#[from] bcrypt::BcryptError),
 }
