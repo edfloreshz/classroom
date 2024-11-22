@@ -6,8 +6,10 @@ use axum::{
 };
 
 use crate::{
+    database::entities::user::Role,
+    error::ApiError,
     prelude::*,
-    services::{auth::decode_jwt, entities::user::Role, user},
+    services::{auth::decode_jwt, user},
 };
 
 pub async fn admin(
@@ -59,18 +61,18 @@ async fn authorize(
 
     let token_data = decode_jwt(token.unwrap().to_string())?;
 
-    tracing::info!("{:?} {:?}", token_data.claims.role, role);
-
     if token_data.claims.role.index() > role.index() {
-        return Err(ServerError::forbidden(
-            &"You are not authorized to access this resource",
-        ));
+        return Err(Error::Api(ApiError::UnauthorizedRole).into());
     }
 
     let current_user = match user::get_user_by_email(&state.pool, token_data.claims.email).await {
         Ok(user) => user,
-        Err(_) => return Err(ServerError::unauthorized(&"You are not an authorized user")),
+        Err(_) => return Err(Error::Api(ApiError::UnauthorizedUser).into()),
     };
+
+    if !current_user.active {
+        return Err(Error::Api(ApiError::InactiveAccount).into());
+    }
 
     req.extensions_mut().insert(current_user);
     Ok(next.run(req).await)

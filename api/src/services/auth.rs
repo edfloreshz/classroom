@@ -1,10 +1,11 @@
 use std::env;
 
 use crate::{
+    database::entities::user::Role,
     error::ApiError,
     models::{
-        auth::{Cliams, RegisterParams, SignInParams},
-        user::UserParams,
+        auth::{ActivationParams, Cliams, RegisterParams, SignInParams},
+        user::{PostUserParams, PutUserParams},
     },
     prelude::*,
     services::user,
@@ -13,7 +14,19 @@ use chrono::Duration;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use uuid::Uuid;
 
-use super::entities::user::Role;
+pub async fn activate(pool: &Pool<Sqlite>, params: ActivationParams) -> Result<(), Error> {
+    params.validate().map_err(ApiError::Validation)?;
+
+    let user = user::get_user_by_email(pool, params.email)
+        .await
+        .map_err(ApiError::UserNotFound)?;
+
+    let mut user: PutUserParams = user.into();
+    user.active = true;
+    user::put(pool, user.into()).await?;
+
+    Ok(())
+}
 
 pub async fn sign_in(pool: &Pool<Sqlite>, params: SignInParams) -> Result<String, Error> {
     params.validate().map_err(ApiError::Validation)?;
@@ -21,6 +34,10 @@ pub async fn sign_in(pool: &Pool<Sqlite>, params: SignInParams) -> Result<String
     let user = user::get_user_by_email(pool, params.email)
         .await
         .map_err(ApiError::UserNotFound)?;
+
+    if !user.active {
+        return Err(ApiError::InactiveAccount.into());
+    }
 
     if !verify_password(&params.password, &user.password)? {
         return Err(ApiError::IncorrectPassword.into());
@@ -39,7 +56,7 @@ pub async fn register(pool: &Pool<Sqlite>, params: RegisterParams) -> Result<(),
         return Err(ApiError::UserAlreadyExists.into());
     }
 
-    let user = UserParams {
+    let user = PostUserParams {
         id: Uuid::new_v4().to_string(),
         username: params.username,
         email: params.email,

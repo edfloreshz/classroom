@@ -13,6 +13,7 @@ async fn main() -> Result<(), Error> {
         .route("/api/user", routes::user(&state))
         .route("/api/auth/signin", routes::sign_in())
         .route("/api/auth/register", routes::register())
+        .route("/api/auth/activate", routes::activate(&state))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;

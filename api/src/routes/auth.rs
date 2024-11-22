@@ -1,8 +1,18 @@
 use crate::{
-    models::auth::{RegisterParams, SignInParams},
+    models::auth::{ActivationParams, RegisterParams, SignInParams},
     prelude::*,
     services,
 };
+
+pub async fn activate(
+    State(state): State<AppState>,
+    Json(params): Json<ActivationParams>,
+) -> Result<Json<Value>, ServerError> {
+    services::auth::activate(&state.pool, params).await?;
+    Ok(Json(json!({
+        "message": "User activated"
+    })))
+}
 
 pub async fn register(
     State(state): State<AppState>,

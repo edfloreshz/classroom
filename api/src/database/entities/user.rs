@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::models::user;
+
 #[derive(sqlx::FromRow, Default, Clone, Deserialize, Serialize)]
 pub struct User {
     pub id: String,
@@ -10,6 +12,7 @@ pub struct User {
     pub first_name: String,
     pub last_name: Option<String>,
     pub role: Role,
+    pub active: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -28,5 +31,15 @@ pub enum Role {
 impl Role {
     pub fn index(&self) -> usize {
         *self as usize
+    }
+}
+
+impl From<user::Role> for Role {
+    fn from(role: user::Role) -> Self {
+        match role {
+            user::Role::Admin => Role::Admin,
+            user::Role::Teacher => Role::Teacher,
+            user::Role::Student => Role::Student,
+        }
     }
 }

@@ -33,3 +33,10 @@ pub fn sign_in() -> MethodRouter<AppState> {
 pub fn register() -> MethodRouter<AppState> {
     post(auth::register)
 }
+
+pub fn activate(state: &AppState) -> MethodRouter<AppState> {
+    post(auth::activate).layer(middleware::from_fn_with_state(
+        state.clone(),
+        crate::middleware::authorize::admin,
+    ))
+}

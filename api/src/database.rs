@@ -4,6 +4,8 @@ use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 
 use crate::prelude::*;
 
+pub mod entities;
+
 pub async fn connection_pool() -> Result<Pool<Sqlite>, Error> {
     let database_url = env::var("DATABASE_URL")?;
 

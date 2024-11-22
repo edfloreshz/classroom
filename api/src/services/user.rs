@@ -1,10 +1,9 @@
 use crate::{
-    models::user::{GetUserParams, PutUserParams, UserParams},
+    database::entities::user::{Role, User},
+    models::user::{GetUserParams, PostUserParams, PutUserParams},
     prelude::*,
 };
 use sqlx::{query_as, Pool, Sqlite};
-
-use super::entities::user::User;
 
 pub async fn get_all(pool: &Pool<Sqlite>) -> Result<Vec<User>, Error> {
     let users = sqlx::query_as::<_, User>("SELECT * FROM users")
@@ -29,44 +28,46 @@ pub async fn get_user_by_email(pool: &Pool<Sqlite>, email: String) -> Result<Use
     Ok(user)
 }
 
-pub async fn post(pool: &Pool<Sqlite>, user: UserParams) -> Result<(), Error> {
-    query(
+pub async fn post(pool: &Pool<Sqlite>, user: PostUserParams) -> Result<(), Error> {
+    query!(
         "INSERT INTO users
-        (id, username, email, password, first_name, last_name)
+        (id, username, email, password, first_name, last_name, role)
         VALUES
-        (?, ?, ?, ?, ?, ?)",
+        (?, ?, ?, ?, ?, ?, ?)",
+        user.id,
+        user.username,
+        user.email,
+        user.password,
+        user.first_name,
+        user.last_name,
+        Role::Student,
     )
-    .bind(user.id)
-    .bind(user.username)
-    .bind(user.email)
-    .bind(user.password)
-    .bind(user.first_name)
-    .bind(user.last_name)
     .execute(pool)
     .await?;
     Ok(())
 }
 
 pub async fn put(pool: &Pool<Sqlite>, params: PutUserParams) -> Result<(), Error> {
-    query(
+    let role: Role = params.role.into();
+    query!(
         "UPDATE users
-        SET username = ?, email = ?, first_name = ?, last_name = ?, role = ?
+        SET username = ?, email = ?, first_name = ?, last_name = ?, role = ?, active = ?
         WHERE id = ?",
+        params.username,
+        params.email,
+        params.first_name,
+        params.last_name,
+        role,
+        params.active,
+        params.id,
     )
-    .bind(params.username)
-    .bind(params.email)
-    .bind(params.first_name)
-    .bind(params.last_name)
-    .bind(params.role)
-    .bind(params.id)
     .execute(pool)
     .await?;
     Ok(())
 }
 
 pub async fn delete(pool: &Pool<Sqlite>, params: GetUserParams) -> Result<(), Error> {
-    query("DELETE FROM users WHERE id = ?")
-        .bind(params.id)
+    query!("DELETE FROM users WHERE id = ?", params.id)
         .execute(pool)
         .await?;
     Ok(())

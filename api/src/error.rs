@@ -30,6 +30,12 @@ pub enum ApiError {
     UserNotFound(sqlx::Error),
     #[error("User already exists")]
     UserAlreadyExists,
+    #[error("You are not an authorized user")]
+    UnauthorizedUser,
+    #[error("You are not authorized to access this resource")]
+    UnauthorizedRole,
+    #[error("Your account is not active, request activation to your admin")]
+    InactiveAccount,
 }
 
 impl From<Error> for ServerError {
@@ -43,6 +49,9 @@ impl From<Error> for ServerError {
                 },
                 ApiError::IncorrectPassword => ServerError::unauthorized(&api_error.to_string()),
                 ApiError::UserAlreadyExists => ServerError::conflict(&api_error),
+                ApiError::InactiveAccount => ServerError::forbidden(&api_error),
+                ApiError::UnauthorizedUser => ServerError::forbidden(&api_error),
+                ApiError::UnauthorizedRole => ServerError::forbidden(&api_error),
             },
             _ => ServerError::internal_server_error(error),
         }
