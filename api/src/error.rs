@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::prelude::ServerError;
+
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("IO: {0}")]
@@ -14,4 +16,35 @@ pub enum Error {
     Bcrypt(#[from] bcrypt::BcryptError),
     #[error("Jwt: {0}")]
     Jwt(#[from] jsonwebtoken::errors::Error),
+    #[error("API: {0}")]
+    Api(#[from] ApiError),
+}
+
+#[derive(Debug, Error)]
+pub enum ApiError {
+    #[error("Password does not match our records")]
+    IncorrectPassword,
+    #[error("Validation errors: {0}")]
+    Validation(garde::Report),
+    #[error("User not found: {0}")]
+    UserNotFound(sqlx::Error),
+    #[error("User already exists")]
+    UserAlreadyExists,
+}
+
+impl From<Error> for ServerError {
+    fn from(error: Error) -> Self {
+        match error {
+            Error::Api(api_error) => match api_error {
+                ApiError::Validation(report) => ServerError::bad_request(&report),
+                ApiError::UserNotFound(error) => match error {
+                    sqlx::Error::RowNotFound => ServerError::unauthorized(&error.to_string()),
+                    _ => ServerError::internal_server_error(error),
+                },
+                ApiError::IncorrectPassword => ServerError::unauthorized(&api_error.to_string()),
+                ApiError::UserAlreadyExists => ServerError::conflict(&api_error),
+            },
+            _ => ServerError::internal_server_error(error),
+        }
+    }
 }

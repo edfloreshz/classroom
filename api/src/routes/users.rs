@@ -1,6 +1,7 @@
 use crate::{
+    models::user::{GetUserParams, PutUserParams, UserParams},
     prelude::*,
-    services::user::{self, User, UserParams},
+    services::{entities::user::User, user},
 };
 
 pub async fn get_all(State(state): State<AppState>) -> Result<Json<Vec<User>>, ServerError> {
@@ -12,7 +13,7 @@ pub async fn get_all(State(state): State<AppState>) -> Result<Json<Vec<User>>, S
 
 pub async fn get(
     State(state): State<AppState>,
-    Query(params): Query<UserParams>,
+    Query(params): Query<GetUserParams>,
 ) -> Result<Json<User>, ServerError> {
     user::get(&state.pool, params)
         .await
@@ -22,7 +23,7 @@ pub async fn get(
 
 pub async fn post(
     State(state): State<AppState>,
-    Json(user): Json<User>,
+    Json(user): Json<UserParams>,
 ) -> Result<StatusCode, ServerError> {
     user::post(&state.pool, user)
         .await
@@ -32,9 +33,9 @@ pub async fn post(
 
 pub async fn put(
     State(state): State<AppState>,
-    Json(user): Json<User>,
+    Json(params): Json<PutUserParams>,
 ) -> Result<StatusCode, ServerError> {
-    user::put(&state.pool, user)
+    user::put(&state.pool, params)
         .await
         .map(|_| StatusCode::OK)
         .map_err(ServerError::internal_server_error)
@@ -42,7 +43,7 @@ pub async fn put(
 
 pub async fn delete(
     State(state): State<AppState>,
-    Query(params): Query<UserParams>,
+    Query(params): Query<GetUserParams>,
 ) -> Result<StatusCode, ServerError> {
     user::delete(&state.pool, params)
         .await

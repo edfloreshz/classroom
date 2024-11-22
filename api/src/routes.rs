@@ -1,3 +1,4 @@
+mod auth;
 mod index;
 mod users;
 
@@ -10,7 +11,7 @@ pub fn index() -> MethodRouter<AppState> {
 pub fn users(state: &AppState) -> MethodRouter<AppState> {
     get(users::get_all).layer(middleware::from_fn_with_state(
         state.clone(),
-        auth::authorize,
+        crate::middleware::authorize,
     ))
 }
 
@@ -21,7 +22,7 @@ pub fn user(state: &AppState) -> MethodRouter<AppState> {
         .put(users::put)
         .layer(middleware::from_fn_with_state(
             state.clone(),
-            auth::authorize,
+            crate::middleware::authorize,
         ))
 }
 

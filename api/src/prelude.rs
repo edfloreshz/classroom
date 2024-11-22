@@ -1,4 +1,3 @@
-pub use crate::auth;
 pub use crate::database::connection_pool;
 pub use crate::error::Error;
 pub use crate::routes;
@@ -12,8 +11,10 @@ pub use axum::{
     Json,
 };
 pub use chrono::{DateTime, Utc};
+pub use garde::Validate;
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::json;
+pub use serde_json::Value;
 pub use sqlx::{query, Pool, Sqlite};
 
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -43,26 +44,26 @@ pub struct ServerError {
 }
 
 impl ServerError {
-    pub fn new(message: impl ToString, status: StatusCode) -> Self {
+    pub fn new(message: &impl ToString, status: StatusCode) -> Self {
         Self {
-            message: message.to_string(),
+            message: message.to_string().clone(),
             status,
         }
     }
 
-    pub fn forbidden(message: impl ToString) -> Self {
+    pub fn forbidden(message: &impl ToString) -> Self {
         Self::new(message, StatusCode::FORBIDDEN)
     }
 
-    pub fn bad_request(message: impl ToString) -> Self {
+    pub fn bad_request(message: &impl ToString) -> Self {
         Self::new(message, StatusCode::BAD_REQUEST)
     }
 
-    pub fn conflict(message: impl ToString) -> Self {
+    pub fn conflict(message: &impl ToString) -> Self {
         Self::new(message, StatusCode::CONFLICT)
     }
 
-    pub fn unauthorized(message: impl ToString) -> Self {
+    pub fn unauthorized(message: &impl ToString) -> Self {
         Self::new(message, StatusCode::UNAUTHORIZED)
     }
 
