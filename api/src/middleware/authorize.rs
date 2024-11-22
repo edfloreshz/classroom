@@ -36,6 +36,14 @@ pub async fn student(
     authorize(state, req, next, Role::Student).await
 }
 
+pub async fn generic(
+    State(state): State<AppState>,
+    req: Request,
+    next: Next,
+) -> Result<Response<Body>, ServerError> {
+    authorize(state, req, next, Role::Generic).await
+}
+
 async fn authorize(
     state: AppState,
     mut req: Request,

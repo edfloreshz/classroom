@@ -45,8 +45,9 @@ impl User {
 pub enum Role {
     Admin = 0,
     Teacher = 1,
-    #[default]
     Student = 2,
+    #[default]
+    Generic = 3,
 }
 
 impl From<user::Role> for Role {
@@ -55,6 +56,7 @@ impl From<user::Role> for Role {
             user::Role::Admin => Role::Admin,
             user::Role::Teacher => Role::Teacher,
             user::Role::Student => Role::Student,
+            user::Role::Generic => Role::Generic,
         }
     }
 }
