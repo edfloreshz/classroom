@@ -1,10 +1,11 @@
-use crate::prelude::*;
+use crate::{prelude::*, services::entities::user::Role};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Cliams {
     pub exp: usize,
     pub iat: usize,
     pub email: String,
+    pub role: Role,
 }
 
 #[derive(Deserialize, Validate)]

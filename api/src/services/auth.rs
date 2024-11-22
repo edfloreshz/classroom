@@ -13,6 +13,8 @@ use chrono::Duration;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use uuid::Uuid;
 
+use super::entities::user::Role;
+
 pub async fn sign_in(pool: &Pool<Sqlite>, params: SignInParams) -> Result<String, Error> {
     params.validate().map_err(ApiError::Validation)?;
 
@@ -24,7 +26,7 @@ pub async fn sign_in(pool: &Pool<Sqlite>, params: SignInParams) -> Result<String
         return Err(ApiError::IncorrectPassword.into());
     }
 
-    let token = encode_jwt(user.email)?;
+    let token = encode_jwt(user.email, user.role)?;
 
     Ok(token)
 }
@@ -61,7 +63,7 @@ pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
     Ok(hash)
 }
 
-pub fn encode_jwt(email: String) -> Result<String, Error> {
+pub fn encode_jwt(email: String, role: Role) -> Result<String, Error> {
     let secret = env::var("SECRET")?;
 
     let now = Utc::now();
@@ -69,7 +71,12 @@ pub fn encode_jwt(email: String) -> Result<String, Error> {
     let exp: usize = (now + expire).timestamp() as usize;
     let iat: usize = now.timestamp() as usize;
 
-    let claim = Cliams { iat, exp, email };
+    let claim = Cliams {
+        iat,
+        exp,
+        email,
+        role,
+    };
 
     let encoded = encode(
         &Header::default(),

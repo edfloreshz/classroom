@@ -1,2 +1,1 @@
-mod authorize;
-pub use authorize::authorize;
+pub mod authorize;

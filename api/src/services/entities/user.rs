@@ -14,11 +14,19 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(sqlx::Type, Debug, Default, Clone, Deserialize, Serialize)]
+#[derive(
+    sqlx::Type, Debug, Default, Clone, Copy, Deserialize, Serialize, PartialEq, PartialOrd,
+)]
 #[sqlx(type_name = "role", rename_all = "lowercase")]
 pub enum Role {
     Admin = 0,
     Teacher = 1,
     #[default]
     Student = 2,
+}
+
+impl Role {
+    pub fn index(&self) -> usize {
+        *self as usize
+    }
 }

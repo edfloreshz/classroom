@@ -7,14 +7,38 @@ use axum::{
 
 use crate::{
     prelude::*,
-    services::{auth::decode_jwt, user},
+    services::{auth::decode_jwt, entities::user::Role, user},
 };
 
-#[axum::debug_middleware]
-pub async fn authorize(
+pub async fn admin(
     State(state): State<AppState>,
+    req: Request,
+    next: Next,
+) -> Result<Response<Body>, ServerError> {
+    authorize(state, req, next, Role::Admin).await
+}
+
+pub async fn teacher(
+    State(state): State<AppState>,
+    req: Request,
+    next: Next,
+) -> Result<Response<Body>, ServerError> {
+    authorize(state, req, next, Role::Teacher).await
+}
+
+pub async fn student(
+    State(state): State<AppState>,
+    req: Request,
+    next: Next,
+) -> Result<Response<Body>, ServerError> {
+    authorize(state, req, next, Role::Student).await
+}
+
+async fn authorize(
+    state: AppState,
     mut req: Request,
     next: Next,
+    role: Role,
 ) -> Result<Response<Body>, ServerError> {
     let auth_header = req.headers_mut().get(http::header::AUTHORIZATION);
 
@@ -34,6 +58,14 @@ pub async fn authorize(
     let (_bearer, token) = (header.next(), header.next());
 
     let token_data = decode_jwt(token.unwrap().to_string())?;
+
+    tracing::info!("{:?} {:?}", token_data.claims.role, role);
+
+    if token_data.claims.role.index() > role.index() {
+        return Err(ServerError::forbidden(
+            &"You are not authorized to access this resource",
+        ));
+    }
 
     let current_user = match user::get_user_by_email(&state.pool, token_data.claims.email).await {
         Ok(user) => user,
