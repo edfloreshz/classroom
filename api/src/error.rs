@@ -12,4 +12,6 @@ pub enum Error {
     Migration(#[from] sqlx::migrate::MigrateError),
     #[error("Bcrypt: {0}")]
     Bcrypt(#[from] bcrypt::BcryptError),
+    #[error("Jwt: {0}")]
+    Jwt(#[from] jsonwebtoken::errors::Error),
 }

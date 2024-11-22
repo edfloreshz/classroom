@@ -13,3 +13,5 @@ target/
 
 # Database
 api/database
+
+.env

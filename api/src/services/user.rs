@@ -1,5 +1,5 @@
 use garde::Validate;
-use sqlx::{Pool, Sqlite};
+use sqlx::{query_as, Pool, Sqlite};
 
 use crate::prelude::*;
 
@@ -94,10 +94,16 @@ pub async fn delete(pool: &Pool<Sqlite>, params: UserParams) -> Result<(), Error
     Ok(())
 }
 
+#[derive(Debug, sqlx::FromRow)]
+pub struct Exists {
+    pub row_exists: bool,
+}
+
 pub async fn user_exists(pool: &Pool<Sqlite>, email: &impl ToString) -> Result<bool, Error> {
-    let result = query("SELECT * FROM users WHERE email = ? LIMIT 2")
-        .bind(email.to_string())
-        .fetch_all(pool)
-        .await?;
-    Ok(result.len() > 0)
+    let result =
+        query_as::<_, Exists>("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?) AS row_exists")
+            .bind(email.to_string())
+            .fetch_one(pool)
+            .await?;
+    Ok(result.row_exists)
 }

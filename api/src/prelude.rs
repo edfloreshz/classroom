@@ -50,6 +50,22 @@ impl ServerError {
         }
     }
 
+    pub fn forbidden(message: impl ToString) -> Self {
+        Self::new(message, StatusCode::FORBIDDEN)
+    }
+
+    pub fn bad_request(message: impl ToString) -> Self {
+        Self::new(message, StatusCode::BAD_REQUEST)
+    }
+
+    pub fn conflict(message: impl ToString) -> Self {
+        Self::new(message, StatusCode::CONFLICT)
+    }
+
+    pub fn unauthorized(message: impl ToString) -> Self {
+        Self::new(message, StatusCode::UNAUTHORIZED)
+    }
+
     pub fn internal_server_error(error: impl Into<Error>) -> Self {
         let error: Error = error.into();
         Self {

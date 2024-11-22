@@ -7,15 +7,22 @@ pub fn index() -> MethodRouter<AppState> {
     get(index::index)
 }
 
-pub fn users() -> MethodRouter<AppState> {
-    get(users::get_all)
+pub fn users(state: &AppState) -> MethodRouter<AppState> {
+    get(users::get_all).layer(middleware::from_fn_with_state(
+        state.clone(),
+        auth::authorize,
+    ))
 }
 
-pub fn user() -> MethodRouter<AppState> {
+pub fn user(state: &AppState) -> MethodRouter<AppState> {
     get(users::get)
         .post(users::post)
         .delete(users::delete)
         .put(users::put)
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            auth::authorize,
+        ))
 }
 
 pub fn sign_in() -> MethodRouter<AppState> {
