@@ -1,3 +1,5 @@
+use std::env;
+
 use crate::{
     prelude::*,
     services::user::{self, User},
@@ -51,7 +53,7 @@ pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
 }
 
 pub fn encode_jwt(email: String) -> Result<String, ServerError> {
-    let jwt_token: String = "randomstring".to_string();
+    let secret = env::var("SECRET").map_err(ServerError::internal_server_error)?;
 
     let now = Utc::now();
     let expire: chrono::TimeDelta = Duration::hours(24);
@@ -59,7 +61,6 @@ pub fn encode_jwt(email: String) -> Result<String, ServerError> {
     let iat: usize = now.timestamp() as usize;
 
     let claim = Cliams { iat, exp, email };
-    let secret = jwt_token.clone();
 
     encode(
         &Header::default(),
@@ -70,7 +71,7 @@ pub fn encode_jwt(email: String) -> Result<String, ServerError> {
 }
 
 pub fn decode_jwt(jwt: String) -> Result<TokenData<Cliams>, ServerError> {
-    let secret = "randomstring".to_string();
+    let secret = env::var("SECRET").map_err(ServerError::internal_server_error)?;
 
     let result = decode(
         &jwt,
